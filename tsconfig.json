@@ -13,5 +13,10 @@
     "resolveJsonModule": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": ["./forge.config.ts"],
+  "references": [
+    {
+      "path": "./tsconfig.vite.json"
+    }
+  ]
 }
