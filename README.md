@@ -1,50 +1,56 @@
-# React + TypeScript + Vite
+## 核心原理
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### 1. **文本表示**
+   - CodeMirror 并不直接操作 `<textarea>`，而是使用 `div` 和 `span` 来模拟文本显示。
+   - 内部维护一个 JavaScript 数组作为文本的核心数据结构，支持高效的编辑操作。
 
-Currently, two official plugins are available:
+### 2. **虚拟 DOM 与高效渲染**
+   - 采用 **分块（chunked）** 方式存储文本，避免整个 DOM 重新渲染，提高大文件的处理效率。
+   - 仅更新可见区域的 DOM 节点，类似虚拟 DOM 的 diff 机制。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 3. **光标与选区管理**
+   - CodeMirror 使用 `<div contenteditable>` 模拟光标，并监听键盘事件、鼠标事件。
+   - 通过 `document.execCommand()` 或 `Range` API 操作选区。
 
-## Expanding the ESLint configuration
+### 4. **语法高亮**
+   - 采用 **状态机** 或 **正则匹配** 解析代码，并使用 `<span>` 结构化标记不同语法单元。
+   - 提供基于 Token 的扩展系统，可以自定义高亮规则。
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+### 5. **插件与扩展**
+   - 通过事件机制（如 `beforeChange`、`onChange`）提供可扩展 API。
+   - 支持 LSP（Language Server Protocol）实现智能补全等高级功能。
 
-- Configure the top-level `parserOptions` property like this:
+## 核心技术栈
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+### **核心架构**
+1. **文本存储**：
+   - 使用 **Piece Table** 或 **Rope** 数据结构，优化大文本插入/删除性能。
+   - 维护 **行索引**，提高滚动和查询速度。
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. **渲染优化**：
+   - **虚拟化渲染**（仅渲染可见区域，避免 DOM 过载）。
+   - **基于 Canvas/WebGL 的文本绘制**，减少 DOM 操作，提高性能（如 Monaco Editor）。
+   - **增量更新**，避免全局重绘。
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+3. **输入与光标管理**：
+   - 监听 `keydown`、`compositionstart` 等事件处理输入。
+   - **支持 IME（输入法）**，处理拼音、日语等复杂输入。
+   - **多光标支持**，如 VS Code 那样的多选区编辑。
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+4. **语法高亮**：
+   - 可以用 **Codex、Prism.js** 或 **自定义解析器** 实现
+   - 使用 **行解析 + Token 缓存** 提高性能。
+   - **正则 + 状态机** 实现动态高亮。
+   - 可接入 **Tree-sitter** 进行高效解析。
+
+5. **自动补全 & 代码分析**：
+   - 使用 **LSP（Language Server Protocol）** 实现智能补全。
+   - 提供 **AST 解析** 以支持格式化、重构。
+
+6. **插件 & 扩展**：
+   - 提供事件钩子（如 `onChange`、`onCursorMove`）。
+   - 允许用户自定义高亮、快捷键、代码片段等。
+
+7. **主题与 UI 设计**：
+   - 采用 **CSS 变量** 或 **Tailwind** 支持深色/浅色主题切换。
+   - 支持 **Markdown 预览**、行号、折叠、自动换行等功能。
